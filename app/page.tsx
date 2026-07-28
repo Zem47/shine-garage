@@ -983,17 +983,24 @@ export default function Home() {
               fieldName="name"
               error={formErrors.name}
             >
-              <input
-                suppressHydrationWarning
-                type="text"
-                name="name"
-                required
-                autoComplete="name"
-                placeholder="np. Jan Kowalski"
-                onChange={() => clearFieldError("name")}
-                aria-invalid={Boolean(formErrors.name)}
-                className={`form-field ${formErrors.name ? "form-field-invalid" : ""}`}
-              />
+              <div className="form-field-shell">
+                <span className="form-field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8a7 7 0 0 0-14 0" />
+                  </svg>
+                </span>
+                <input
+                  suppressHydrationWarning
+                  type="text"
+                  name="name"
+                  required
+                  autoComplete="name"
+                  placeholder="np. Jan Kowalski"
+                  onChange={() => clearFieldError("name")}
+                  aria-invalid={Boolean(formErrors.name)}
+                  className={`form-field form-field-featured ${formErrors.name ? "form-field-invalid" : ""}`}
+                />
+              </div>
             </Field>
 
             <Field
@@ -1001,34 +1008,51 @@ export default function Home() {
               fieldName="phone"
               error={formErrors.phone}
             >
-              <input
-                suppressHydrationWarning
-                type="tel"
-                name="phone"
-                required
-                autoComplete="tel"
-                placeholder="np. 123 456 789"
-                onChange={() => clearFieldError("phone")}
-                aria-invalid={Boolean(formErrors.phone)}
-                className={`form-field ${formErrors.phone ? "form-field-invalid" : ""}`}
-              />
+              <div className="form-field-shell">
+                <span className="form-field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M7.5 3.5 10 8 7.8 9.8a15.6 15.6 0 0 0 6.4 6.4L16 14l4.5 2.5-.7 3.5c-.2.7-.8 1.2-1.5 1.2C9.7 20.7 3.3 14.3 2.8 5.7c0-.7.5-1.3 1.2-1.5l3.5-.7Z" />
+                  </svg>
+                </span>
+                <input
+                  suppressHydrationWarning
+                  type="tel"
+                  name="phone"
+                  required
+                  autoComplete="tel"
+                  inputMode="tel"
+                  placeholder="np. 123 456 789"
+                  onChange={() => clearFieldError("phone")}
+                  aria-invalid={Boolean(formErrors.phone)}
+                  className={`form-field form-field-featured ${formErrors.phone ? "form-field-invalid" : ""}`}
+                />
+              </div>
             </Field>
 
             <Field
               label="Marka i model samochodu"
               fieldName="car"
               error={formErrors.car}
+              className="md:col-span-2"
             >
-              <input
-                suppressHydrationWarning
-                type="text"
-                name="car"
-                required
-                placeholder="np. BMW Seria 3"
-                onChange={() => clearFieldError("car")}
-                aria-invalid={Boolean(formErrors.car)}
-                className={`form-field ${formErrors.car ? "form-field-invalid" : ""}`}
-              />
+              <div className="form-field-shell">
+                <span className="form-field-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="m4 14 1.5-5A2 2 0 0 1 7.4 7h9.2a2 2 0 0 1 1.9 2l1.5 5M3 14h18v5H3v-5Zm3 5v2m12-2v2M6.5 16.5h.01m10.99 0h.01" />
+                  </svg>
+                </span>
+                <input
+                  suppressHydrationWarning
+                  type="text"
+                  name="car"
+                  required
+                  autoComplete="off"
+                  placeholder="np. BMW Seria 3"
+                  onChange={() => clearFieldError("car")}
+                  aria-invalid={Boolean(formErrors.car)}
+                  className={`form-field form-field-featured ${formErrors.car ? "form-field-invalid" : ""}`}
+                />
+              </div>
             </Field>
 
             <fieldset
@@ -1483,16 +1507,18 @@ function Field({
   children,
   fieldName,
   error,
+  className = "",
 }: {
   label: string;
   children: React.ReactNode;
   fieldName?: string;
   error?: string;
+  className?: string;
 }) {
   return (
     <label
       data-field={fieldName}
-      className={`flex flex-col gap-2 rounded-xl transition ${
+      className={`flex flex-col gap-2 rounded-xl transition ${className} ${
         error ? "field-error-shake" : ""
       }`}
     >
