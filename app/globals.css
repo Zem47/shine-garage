@@ -24,3 +24,245 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(34px);
+  transition:
+    opacity 0.75s ease,
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.scroll-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition {
+  min-height: 100vh;
+  opacity: 0;
+  transition:
+    opacity 0.58s ease,
+    transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.page-transition-from-right {
+  transform: translateX(72px);
+}
+
+.page-transition-from-left {
+  transform: translateX(-72px);
+}
+
+.page-transition-ready {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-transition-out-left {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-72px);
+  transition:
+    opacity 0.48s ease-in,
+    transform 0.48s cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+.page-transition-out-right {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(72px);
+  transition:
+    opacity 0.48s ease-in,
+    transform 0.48s cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+.service-background {
+  animation: service-background-in 1.1s ease-out both;
+}
+
+.service-reveal {
+  opacity: 0;
+  animation: service-content-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.service-reveal-1 {
+  animation-delay: 0.12s;
+}
+
+.service-reveal-2 {
+  animation-delay: 0.22s;
+}
+
+.service-reveal-3 {
+  animation-delay: 0.32s;
+}
+
+.service-reveal-4 {
+  animation-delay: 0.44s;
+}
+
+.service-reveal-5 {
+  animation-delay: 0.56s;
+}
+
+@keyframes service-background-in {
+  from {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+
+  to {
+    opacity: 0.25;
+    transform: scale(1);
+  }
+}
+
+@keyframes service-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  outline-offset: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #67e8f9;
+}
+
+.form-field {
+  height: 3rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(255 255 255 / 0.15);
+  background: #09090b;
+  padding-inline: 1rem;
+  color: white;
+  outline: none;
+}
+
+.form-field::placeholder {
+  color: #71717a;
+}
+
+.form-field:focus {
+  border-color: #22d3ee;
+}
+
+.form-field-invalid {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgb(248 113 113 / 0.12);
+}
+
+.field-error-shake {
+  animation: field-error-shake 0.48s ease-out;
+}
+
+@keyframes field-error-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-7px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+}
+
+.call-button-collapsed {
+  animation: call-button-pulse 2.8s ease-in-out 1.1s infinite;
+}
+
+@keyframes call-button-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 24px rgb(34 211 238 / 0.28);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 38px rgb(34 211 238 / 0.48);
+    transform: scale(1.06);
+  }
+}
+
+.calculator-price {
+  animation: calculator-price-pop 0.45s
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes calculator-price-pop {
+  0% {
+    color: #67e8f9;
+    opacity: 0.45;
+    transform: translateY(8px) scale(0.9);
+  }
+  100% {
+    color: #fff;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  box-shadow: 0 0 0 1000px #09090b inset;
+  transition: background-color 9999s ease-out;
+}
+
+.reservation-highlight {
+  animation: reservation-pulse 1.5s ease-out;
+}
+
+@keyframes reservation-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(34 211 238 / 0);
+    transform: translateY(0);
+  }
+  35% {
+    box-shadow: 0 0 0 5px rgb(34 211 238 / 0.18),
+      0 0 50px rgb(34 211 238 / 0.22);
+    transform: translateY(-4px);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(34 211 238 / 0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
