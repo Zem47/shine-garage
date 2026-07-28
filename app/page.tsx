@@ -1040,8 +1040,15 @@ export default function Home() {
               <legend className="text-sm font-bold text-zinc-200">
                 Wybrany pakiet
               </legend>
+              <button
+                type="button"
+                onClick={() => navigateTo("pakiety")}
+                className="float-right -mt-6 rounded-full px-3 py-1 text-sm font-black text-cyan-300 transition duration-300 hover:-translate-y-0.5 hover:bg-cyan-300/10 hover:text-cyan-200"
+              >
+                Zobacz pakiety ↑
+              </button>
               <input type="hidden" name="package" value={selectedPackage} />
-              <div className="mt-2 grid gap-3 sm:grid-cols-3">
+              <div className="clear-both mt-3 grid gap-3 sm:grid-cols-3">
                 {[
                   ["start", "Start", "349 zł"],
                   ["pro", "Pro", "899 zł"],
