@@ -312,8 +312,10 @@ export default function Home() {
     if (kind !== "loading") {
       toastTimerRef.current = window.setTimeout(() => {
         setMessage("");
-        setToastKind("");
-        toastTimerRef.current = null;
+        toastTimerRef.current = window.setTimeout(() => {
+          setToastKind("");
+          toastTimerRef.current = null;
+        }, 550);
       }, duration);
     }
   }
@@ -463,7 +465,9 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <header className="fixed inset-x-0 top-0 z-[90] border-b border-white/10 bg-black/95 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+      {typeof document !== "undefined" &&
+        createPortal(
+      <header className="fixed inset-x-0 top-0 z-[9998] border-b border-white/10 bg-black/95 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 md:px-10">
           <button
             type="button"
@@ -558,7 +562,9 @@ export default function Home() {
             ))}
           </nav>
         </div>
-      </header>
+      </header>,
+          document.body,
+        )}
 
       <section
         id="start"
@@ -1656,7 +1662,7 @@ export default function Home() {
                   aria-label="Zamknij powiadomienie"
                   onClick={() => {
                     setMessage("");
-                    setToastKind("");
+                    window.setTimeout(() => setToastKind(""), 550);
                   }}
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl text-zinc-300 transition hover:bg-white/10 hover:text-white"
                 >
