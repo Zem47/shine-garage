@@ -1614,22 +1614,22 @@ export default function Home() {
             role="status"
             aria-live="polite"
             aria-atomic="true"
-            className={`fixed inset-x-0 top-[72px] z-[9999] transition-all duration-500 ${
+            className={`fixed left-4 right-4 top-24 z-[9999] transition-all duration-500 sm:left-auto sm:right-6 sm:w-[420px] ${
               message
                 ? "translate-y-0 opacity-100"
-                : "pointer-events-none -translate-y-full opacity-0"
+                : "pointer-events-none -translate-y-5 opacity-0"
             }`}
           >
             <div
-              className={`border-b backdrop-blur-xl ${
+              className={`rounded-2xl border bg-zinc-950/95 backdrop-blur-xl ${
                 toastKind === "error"
-                  ? "border-red-400/50 bg-red-950/95 shadow-[0_12px_40px_rgba(248,113,113,0.2)]"
+                  ? "border-red-400/50 shadow-[0_12px_40px_rgba(248,113,113,0.2)]"
                   : toastKind === "loading"
-                    ? "border-cyan-300/40 bg-cyan-950/95 shadow-[0_12px_40px_rgba(34,211,238,0.2)]"
-                    : "border-green-400/50 bg-green-950/95 shadow-[0_12px_40px_rgba(74,222,128,0.2)]"
+                    ? "border-cyan-300/40 shadow-[0_12px_40px_rgba(34,211,238,0.2)]"
+                    : "border-green-400/50 shadow-[0_12px_40px_rgba(74,222,128,0.2)]"
               }`}
             >
-              <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-4 md:px-10">
+              <div className="flex items-start gap-4 p-5">
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-black text-black ${
                     toastKind === "error"
