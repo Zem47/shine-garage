@@ -133,6 +133,27 @@ const timeSlots = Array.from({ length: 24 }, (_, index) => {
     .padStart(2, "0")}`;
 });
 
+const extraServices = [
+  {
+    value: "ceramic",
+    label: "Powłoka ceramiczna",
+    price: "+900 zł",
+    href: "/uslugi/powloka-ceramiczna",
+  },
+  {
+    value: "interior",
+    label: "Pełne czyszczenie wnętrza",
+    price: "+300 zł",
+    href: "/uslugi/detailing-wnetrza",
+  },
+  {
+    value: "wheels",
+    label: "Zabezpieczenie felg",
+    price: "+160 zł",
+    href: "/uslugi/zabezpieczenie-felg",
+  },
+];
+
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -140,6 +161,9 @@ export default function Home() {
     "success" | "error" | "loading" | ""
   >("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reservationSent, setReservationSent] = useState(false);
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState("start");
   const [reservationHighlight, setReservationHighlight] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
@@ -168,6 +192,36 @@ export default function Home() {
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setBookedTimes([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsLoadingAvailability(true);
+
+    fetch(`/api/dostepnosc?date=${encodeURIComponent(selectedDate)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const result = (await response.json()) as { bookedTimes?: string[] };
+        if (!response.ok) throw new Error();
+        const nextBookedTimes = result.bookedTimes ?? [];
+        setBookedTimes(nextBookedTimes);
+        if (nextBookedTimes.includes(selectedTime)) {
+          setSelectedTime("");
+        }
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setBookedTimes([]);
+      })
+      .finally(() => setIsLoadingAvailability(false));
+
+    return () => controller.abort();
+  }, [selectedDate, selectedTime]);
 
   useEffect(() => {
     const elements =
@@ -317,6 +371,7 @@ export default function Home() {
     }
 
     setFormErrors({});
+    setReservationSent(false);
     setIsSubmitting(true);
     showToast("loading", "Wysyłamy rezerwację…");
 
@@ -341,7 +396,7 @@ export default function Home() {
       });
 
       const result = (await response.json().catch(() => null)) as
-        | { error?: string; ok?: boolean }
+        | { error?: string; message?: string; ok?: boolean }
         | null;
 
       if (!response.ok) {
@@ -356,10 +411,13 @@ export default function Home() {
       setSelectedExtras([]);
       setSelectedDate("");
       setSelectedTime("");
+      setBookedTimes([]);
+      setReservationSent(true);
       showToast(
         "success",
-        "Dziękujemy! Rezerwacja została wysłana. Odezwiemy się telefonicznie.",
-        9000,
+        result?.message ||
+          "Dziękujemy! Rezerwacja została przyjęta. Odezwiemy się telefonicznie.",
+        12000,
       );
     } catch (error) {
       showToast(
@@ -857,39 +915,45 @@ export default function Home() {
 
               <p className="mt-8 font-black">Usługi dodatkowe</p>
               <div className="mt-4 grid gap-3">
-                {[
-                  ["ceramic", "Powłoka ceramiczna", "+900 zł"],
-                  ["interior", "Pełne czyszczenie wnętrza", "+300 zł"],
-                  ["wheels", "Zabezpieczenie felg", "+160 zł"],
-                ].map(([value, label, price]) => {
+                {extraServices.map(({ value, label, price, href }) => {
                   const active = selectedExtras.includes(value);
                   return (
-                    <button
+                    <div
                       key={value}
-                      type="button"
-                      onClick={() => toggleExtra(value)}
-                      className={`flex items-center justify-between rounded-xl border px-5 py-4 text-left transition-all duration-500 ease-out ${
+                      className={`grid overflow-hidden rounded-xl border transition-all duration-500 ease-out sm:grid-cols-[1fr_auto] ${
                         active
                           ? "scale-[1.015] border-cyan-300 bg-cyan-300/10 shadow-[0_0_24px_rgba(34,211,238,0.14)]"
-                          : "scale-100 border-white/10 bg-black/20 hover:translate-x-1 hover:border-white/30"
+                          : "scale-100 border-white/10 bg-black/20 hover:border-white/30"
                       }`}
                     >
-                      <span className="font-bold">{label}</span>
-                      <span className="flex items-center gap-3">
-                        <span className="text-sm font-black text-cyan-300">
-                          {price}
+                      <button
+                        type="button"
+                        onClick={() => toggleExtra(value)}
+                        className="flex items-center justify-between px-5 py-4 text-left transition hover:bg-white/5"
+                      >
+                        <span className="font-bold">{label}</span>
+                        <span className="flex items-center gap-3">
+                          <span className="text-sm font-black text-cyan-300">
+                            {price}
+                          </span>
+                          <span
+                            className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
+                              active
+                                ? "scale-110 rotate-0 border-cyan-300 bg-cyan-300 text-black opacity-100"
+                                : "scale-75 -rotate-90 border-zinc-600 opacity-50"
+                            }`}
+                          >
+                            {active ? "✓" : ""}
+                          </span>
                         </span>
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
-                            active
-                              ? "scale-110 rotate-0 border-cyan-300 bg-cyan-300 text-black opacity-100"
-                              : "scale-75 -rotate-90 border-zinc-600 opacity-50"
-                          }`}
-                        >
-                          {active ? "✓" : ""}
-                        </span>
-                      </span>
-                    </button>
+                      </button>
+                      <TransitionLink
+                        href={href}
+                        className="flex items-center justify-center border-t border-white/10 px-5 py-3 text-sm font-black text-cyan-300 transition hover:bg-cyan-300 hover:text-black sm:border-l sm:border-t-0"
+                      >
+                        Poznaj usługę →
+                      </TransitionLink>
+                    </div>
                   );
                 })}
               </div>
@@ -1276,41 +1340,47 @@ export default function Home() {
                 Opcjonalnie — możesz zaznaczyć kilka usług.
               </p>
               <div className="mt-3 grid gap-3">
-                {[
-                  ["ceramic", "Powłoka ceramiczna", "+900 zł"],
-                  ["interior", "Pełne czyszczenie wnętrza", "+300 zł"],
-                  ["wheels", "Zabezpieczenie felg", "+160 zł"],
-                ].map(([value, label, price]) => {
+                {extraServices.map(({ value, label, price, href }) => {
                   const isSelected = selectedExtras.includes(value);
 
                   return (
-                    <button
+                    <div
                       key={value}
-                      type="button"
-                      aria-pressed={isSelected}
-                      onClick={() => toggleExtra(value)}
-                      className={`flex items-center justify-between rounded-xl border px-5 py-4 text-left transition-all duration-500 ease-out ${
+                      className={`grid overflow-hidden rounded-xl border transition-all duration-500 ease-out sm:grid-cols-[1fr_auto] ${
                         isSelected
                           ? "scale-[1.01] border-cyan-300 bg-cyan-400/10 shadow-[0_0_24px_rgba(34,211,238,0.14)]"
-                          : "border-white/10 bg-black/25 hover:translate-x-1 hover:border-white/30"
+                          : "border-white/10 bg-black/25 hover:border-white/30"
                       }`}
                     >
-                      <span className="font-bold">{label}</span>
-                      <span className="flex items-center gap-3">
-                        <span className="text-sm font-black text-cyan-300">
-                          {price}
+                      <button
+                        type="button"
+                        aria-pressed={isSelected}
+                        onClick={() => toggleExtra(value)}
+                        className="flex items-center justify-between px-5 py-4 text-left transition hover:bg-white/5"
+                      >
+                        <span className="font-bold">{label}</span>
+                        <span className="flex items-center gap-3">
+                          <span className="text-sm font-black text-cyan-300">
+                            {price}
+                          </span>
+                          <span
+                            className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
+                              isSelected
+                                ? "scale-110 border-cyan-300 bg-cyan-300 text-black opacity-100"
+                                : "scale-75 -rotate-90 border-zinc-600 opacity-60"
+                            }`}
+                          >
+                            {isSelected ? "✓" : ""}
+                          </span>
                         </span>
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
-                            isSelected
-                              ? "scale-110 border-cyan-300 bg-cyan-300 text-black opacity-100"
-                              : "scale-75 -rotate-90 border-zinc-600 opacity-60"
-                          }`}
-                        >
-                          {isSelected ? "✓" : ""}
-                        </span>
-                      </span>
-                    </button>
+                      </button>
+                      <TransitionLink
+                        href={href}
+                        className="flex items-center justify-center border-t border-white/10 px-5 py-3 text-sm font-black text-cyan-300 transition hover:bg-cyan-300 hover:text-black sm:border-l sm:border-t-0"
+                      >
+                        Poznaj usługę →
+                      </TransitionLink>
+                    </div>
                   );
                 })}
               </div>
@@ -1417,28 +1487,36 @@ export default function Home() {
                 }`}
               >
                   <p className="px-2 pb-3 text-sm font-bold text-zinc-300">
-                    Dostępne godziny
+                    {isLoadingAvailability
+                      ? "Sprawdzamy dostępność…"
+                      : "Dostępne godziny"}
                   </p>
                   <div className="grid max-h-56 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
-                    {timeSlots.map((time) => (
-                      <button
-                        key={time}
-                        type="button"
-                        tabIndex={isTimeOpen ? 0 : -1}
-                        onClick={() => {
-                          setSelectedTime(time);
-                          clearFieldError("time");
-                          setIsTimeOpen(false);
-                        }}
-                        className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
-                          selectedTime === time
-                            ? "bg-cyan-300 text-black"
-                            : "bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
+                    {timeSlots.map((time) => {
+                      const isBooked = bookedTimes.includes(time);
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          tabIndex={isTimeOpen && !isBooked ? 0 : -1}
+                          disabled={isBooked || isLoadingAvailability}
+                          onClick={() => {
+                            setSelectedTime(time);
+                            clearFieldError("time");
+                            setIsTimeOpen(false);
+                          }}
+                          className={`rounded-lg px-3 py-2 text-sm font-bold transition ${
+                            isBooked
+                              ? "cursor-not-allowed bg-red-400/10 text-red-300/60 line-through"
+                              : selectedTime === time
+                                ? "bg-cyan-300 text-black"
+                                : "bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white"
+                          }`}
+                        >
+                          {isBooked ? "Zajęte" : time}
+                        </button>
+                      );
+                    })}
                   </div>
               </div>
             </div>
@@ -1493,6 +1571,31 @@ export default function Home() {
             >
               {isSubmitting ? "Wysyłanie…" : "Wyślij prośbę o rezerwację"}
             </button>
+
+            <div
+              role="status"
+              aria-live="polite"
+              className={`overflow-hidden rounded-2xl border transition-all duration-500 md:col-span-2 ${
+                reservationSent
+                  ? "max-h-40 translate-y-0 border-green-400/40 bg-green-400/10 p-5 opacity-100"
+                  : "pointer-events-none max-h-0 -translate-y-3 border-transparent p-0 opacity-0"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-400 font-black text-black">
+                  ✓
+                </span>
+                <div>
+                  <p className="font-black text-green-300">
+                    Rezerwacja została przyjęta
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-300">
+                    Dostaliśmy Twoje zgłoszenie. Skontaktujemy się telefonicznie,
+                    aby potwierdzić termin.
+                  </p>
+                </div>
+              </div>
+            </div>
 
           </form>
         </div>

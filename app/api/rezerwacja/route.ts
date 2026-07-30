@@ -100,6 +100,55 @@ export async function POST(request: Request) {
     );
   }
 
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  let claimedReservationId: number | string | null = null;
+
+  if (supabaseUrl && supabaseServiceRoleKey) {
+    const claimResponse = await fetch(`${supabaseUrl}/rest/v1/reservations`, {
+      method: "POST",
+      headers: {
+        apikey: supabaseServiceRoleKey,
+        Authorization: `Bearer ${supabaseServiceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        name: reservation.name,
+        phone: reservation.phone,
+        car: reservation.car,
+        package: reservation.package,
+        car_size: reservation.carSize,
+        extras: reservation.extras,
+        estimated_price: reservation.estimatedPrice,
+        reservation_date: reservation.date,
+        reservation_time: reservation.time,
+        notes: reservation.notes || null,
+      }),
+    });
+
+    if (!claimResponse.ok) {
+      const databaseError = await claimResponse.text();
+      console.error("Reservation claim failed", claimResponse.status, databaseError);
+      const isDuplicate =
+        claimResponse.status === 409 ||
+        databaseError.includes("reservations_reservation_date_reservation_time_key") ||
+        databaseError.includes("23505");
+
+      return NextResponse.json(
+        {
+          error: isDuplicate
+            ? "Ten termin został już zarezerwowany. Wybierz inną godzinę."
+            : "Nie udało się zapisać terminu. Spróbuj ponownie.",
+        },
+        { status: isDuplicate ? 409 : 502 },
+      );
+    }
+
+    const claimedRows = (await claimResponse.json()) as { id?: number | string }[];
+    claimedReservationId = claimedRows[0]?.id ?? null;
+  }
+
   const rows = [
     ["Imię i nazwisko", reservation.name],
     ["Telefon", reservation.phone],
@@ -201,13 +250,34 @@ export async function POST(request: Request) {
       publicError = "Przekroczono chwilowy limit wysyłania wiadomości.";
     }
 
+    if (
+      claimedReservationId !== null &&
+      supabaseUrl &&
+      supabaseServiceRoleKey
+    ) {
+      await fetch(
+        `${supabaseUrl}/rest/v1/reservations?id=eq.${encodeURIComponent(String(claimedReservationId))}`,
+        {
+          method: "DELETE",
+          headers: {
+            apikey: supabaseServiceRoleKey,
+            Authorization: `Bearer ${supabaseServiceRoleKey}`,
+          },
+        },
+      ).catch(() => undefined);
+    }
+
     return NextResponse.json(
       { error: publicError },
       { status: 502 },
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    message:
+      "Dziękujemy! Rezerwacja została przyjęta. Odezwiemy się telefonicznie.",
+  });
 }
 
 function getDateInTimeZone(timeZone: string) {
