@@ -64,6 +64,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const todayInPoland = getDateInTimeZone("Europe/Warsaw");
+  const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(reservation.date);
+
+  if (!isValidDate || reservation.date < todayInPoland) {
+    return NextResponse.json(
+      { error: "Nie można wysłać rezerwacji na dzień, który już minął." },
+      { status: 400 },
+    );
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   const recipient = process.env.RESERVATION_EMAIL;
   const from =
@@ -127,4 +137,21 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+function getDateInTimeZone(timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
 }

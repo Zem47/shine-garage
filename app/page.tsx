@@ -253,8 +253,12 @@ export default function Home() {
     if (!selectedPackage) {
       errors.package = "Wybierz jeden z pakietów.";
     }
+    const todayValue = formatInputDate(new Date());
+
     if (!selectedDate) {
       errors.date = "Wybierz preferowany dzień.";
+    } else if (selectedDate < todayValue) {
+      errors.date = "Nie możesz wybrać dnia, który już minął.";
     }
     if (!selectedTime) {
       errors.time = "Wybierz preferowaną godzinę.";
@@ -1565,6 +1569,9 @@ function CustomCalendar({
 }) {
   const today = startOfDay(new Date());
   const days = getCalendarDays(month);
+  const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const displayedMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+  const canGoToPreviousMonth = displayedMonth > currentMonth;
 
   return (
     <div
@@ -1580,12 +1587,13 @@ function CustomCalendar({
           type="button"
           tabIndex={isOpen ? 0 : -1}
           aria-label="Poprzedni miesiąc"
+          disabled={!canGoToPreviousMonth}
           onClick={() =>
             onMonthChange(
               new Date(month.getFullYear(), month.getMonth() - 1, 1),
             )
           }
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-xl transition hover:bg-white/10"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-xl transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
         >
           ‹
         </button>
