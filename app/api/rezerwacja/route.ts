@@ -5,6 +5,9 @@ type Reservation = {
   phone?: unknown;
   car?: unknown;
   package?: unknown;
+  carSize?: unknown;
+  extras?: unknown;
+  estimatedPrice?: unknown;
   date?: unknown;
   time?: unknown;
   notes?: unknown;
@@ -45,6 +48,15 @@ export async function POST(request: Request) {
     phone: text(body.phone, 50),
     car: text(body.car),
     package: text(body.package, 100),
+    carSize: text(body.carSize, 50),
+    extras: Array.isArray(body.extras)
+      ? body.extras.map((item) => text(item, 100)).filter(Boolean).slice(0, 10)
+      : [],
+    estimatedPrice:
+      typeof body.estimatedPrice === "number" &&
+      Number.isFinite(body.estimatedPrice)
+        ? Math.round(body.estimatedPrice)
+        : null,
     date: text(body.date, 30),
     time: text(body.time, 20),
     notes: text(body.notes, 2000),
@@ -55,6 +67,7 @@ export async function POST(request: Request) {
     !reservation.phone ||
     !reservation.car ||
     !reservation.package ||
+    !reservation.carSize ||
     !reservation.date ||
     !reservation.time
   ) {
@@ -92,6 +105,39 @@ export async function POST(request: Request) {
     ["Telefon", reservation.phone],
     ["Samochód", reservation.car],
     ["Pakiet", reservation.package],
+    [
+      "Wielkość samochodu",
+      (
+        {
+          small: "Małe",
+          medium: "Średnie",
+          large: "SUV / duże",
+        } as Record<string, string>
+      )[reservation.carSize] ?? reservation.carSize,
+    ],
+    [
+      "Usługi dodatkowe",
+      reservation.extras.length
+        ? reservation.extras
+            .map(
+              (extra) =>
+                (
+                  {
+                    ceramic: "Powłoka ceramiczna",
+                    interior: "Pełne czyszczenie wnętrza",
+                    wheels: "Zabezpieczenie felg",
+                  } as Record<string, string>
+                )[extra] ?? extra,
+            )
+            .join(", ")
+        : "Brak",
+    ],
+    [
+      "Szacowana cena",
+      reservation.estimatedPrice !== null
+        ? `${reservation.estimatedPrice} zł`
+        : "Do ustalenia",
+    ],
     ["Termin", `${reservation.date}, ${reservation.time}`],
     ["Uwagi", reservation.notes || "Brak"],
   ];

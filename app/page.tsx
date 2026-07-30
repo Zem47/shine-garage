@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { TransitionLink } from "./TransitionLink";
 
 const services = [
@@ -156,6 +156,7 @@ export default function Home() {
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isCallButtonCollapsed, setIsCallButtonCollapsed] = useState(false);
+  const toastTimerRef = useRef<number | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
@@ -240,6 +241,28 @@ export default function Home() {
     });
   }
 
+  function showToast(
+    kind: "success" | "error" | "loading",
+    text: string,
+    duration = 7000,
+  ) {
+    if (toastTimerRef.current !== null) {
+      window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+
+    setToastKind(kind);
+    setMessage(text);
+
+    if (kind !== "loading") {
+      toastTimerRef.current = window.setTimeout(() => {
+        setMessage("");
+        setToastKind("");
+        toastTimerRef.current = null;
+      }, duration);
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -289,19 +312,13 @@ export default function Home() {
           )
           ?.focus({ preventScroll: true });
       }, 80);
-      setToastKind("error");
-      setMessage("Uzupełnij zaznaczone pola formularza.");
-      window.setTimeout(() => {
-        setMessage("");
-        setToastKind("");
-      }, 7000);
+      showToast("error", "Uzupełnij zaznaczone pola formularza.");
       return;
     }
 
     setFormErrors({});
     setIsSubmitting(true);
-    setToastKind("loading");
-    setMessage("Wysyłamy rezerwację…");
+    showToast("loading", "Wysyłamy rezerwację…");
 
     try {
       const response = await fetch("/api/rezerwacja", {
@@ -314,6 +331,9 @@ export default function Home() {
           phone: String(formData.get("phone") || "").trim(),
           car: String(formData.get("car") || "").trim(),
           package: selectedPackage,
+          carSize: selectedCarSize,
+          extras: selectedExtras,
+          estimatedPrice,
           date: selectedDate,
           time: selectedTime,
           notes: String(formData.get("notes") || "").trim(),
@@ -332,25 +352,25 @@ export default function Home() {
 
       form.reset();
       setSelectedPackage("");
+      setSelectedCarSize("medium");
+      setSelectedExtras([]);
       setSelectedDate("");
       setSelectedTime("");
-      setToastKind("success");
-      setMessage(
+      showToast(
+        "success",
         "Dziękujemy! Rezerwacja została wysłana. Odezwiemy się telefonicznie.",
+        9000,
       );
     } catch (error) {
-      setToastKind("error");
-      setMessage(
+      showToast(
+        "error",
         error instanceof Error
           ? error.message
           : "Nie udało się wysłać rezerwacji. Spróbuj ponownie lub zadzwoń.",
+        9000,
       );
     } finally {
       setIsSubmitting(false);
-      window.setTimeout(() => {
-        setMessage("");
-        setToastKind("");
-      }, 9000);
     }
   }
 
@@ -1197,6 +1217,124 @@ export default function Home() {
               )}
             </fieldset>
 
+            <fieldset className="rounded-2xl md:col-span-2">
+              <legend className="text-sm font-bold text-zinc-200">
+                Wielkość samochodu
+              </legend>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                {[
+                  ["small", "Małe", "+0 zł"],
+                  ["medium", "Średnie", "+100 zł"],
+                  ["large", "SUV / duże", "+250 zł"],
+                ].map(([value, label, price]) => {
+                  const isSelected = selectedCarSize === value;
+
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => setSelectedCarSize(value)}
+                      className={`relative rounded-2xl border p-4 text-left transition-all duration-500 ease-out ${
+                        isSelected
+                          ? "scale-[1.025] border-cyan-300 bg-cyan-400/10 shadow-[0_0_30px_rgba(34,211,238,0.18)]"
+                          : "scale-100 border-white/10 bg-black/25 hover:-translate-y-1 hover:border-white/30"
+                      }`}
+                    >
+                      <span
+                        className={
+                          isSelected
+                            ? "font-black text-cyan-300"
+                            : "font-black"
+                        }
+                      >
+                        {label}
+                      </span>
+                      <span className="mt-1 block text-sm text-zinc-400">
+                        {price}
+                      </span>
+                      <span
+                        className={`absolute right-4 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border transition-all duration-500 ${
+                          isSelected
+                            ? "scale-110 border-cyan-300 bg-cyan-300 text-xs text-black opacity-100"
+                            : "scale-75 -rotate-90 border-zinc-600 opacity-60"
+                        }`}
+                      >
+                        {isSelected ? "✓" : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <fieldset className="rounded-2xl md:col-span-2">
+              <legend className="text-sm font-bold text-zinc-200">
+                Usługi dodatkowe
+              </legend>
+              <p className="mt-1 text-xs text-zinc-500">
+                Opcjonalnie — możesz zaznaczyć kilka usług.
+              </p>
+              <div className="mt-3 grid gap-3">
+                {[
+                  ["ceramic", "Powłoka ceramiczna", "+900 zł"],
+                  ["interior", "Pełne czyszczenie wnętrza", "+300 zł"],
+                  ["wheels", "Zabezpieczenie felg", "+160 zł"],
+                ].map(([value, label, price]) => {
+                  const isSelected = selectedExtras.includes(value);
+
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => toggleExtra(value)}
+                      className={`flex items-center justify-between rounded-xl border px-5 py-4 text-left transition-all duration-500 ease-out ${
+                        isSelected
+                          ? "scale-[1.01] border-cyan-300 bg-cyan-400/10 shadow-[0_0_24px_rgba(34,211,238,0.14)]"
+                          : "border-white/10 bg-black/25 hover:translate-x-1 hover:border-white/30"
+                      }`}
+                    >
+                      <span className="font-bold">{label}</span>
+                      <span className="flex items-center gap-3">
+                        <span className="text-sm font-black text-cyan-300">
+                          {price}
+                        </span>
+                        <span
+                          className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
+                            isSelected
+                              ? "scale-110 border-cyan-300 bg-cyan-300 text-black opacity-100"
+                              : "scale-75 -rotate-90 border-zinc-600 opacity-60"
+                          }`}
+                        >
+                          {isSelected ? "✓" : ""}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-5 md:col-span-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-widest text-cyan-300">
+                    Szacowana cena
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-400">
+                    Pakiet, wielkość auta i wybrane dodatki
+                  </p>
+                </div>
+                <p
+                  key={estimatedPrice}
+                  className="calculator-price text-3xl font-black"
+                >
+                  {estimatedPrice} zł
+                </p>
+              </div>
+            </div>
+
             <div className="relative">
               <Field
                 label="Preferowany termin"
@@ -1363,7 +1501,7 @@ export default function Home() {
       <div
         role="status"
         aria-live="polite"
-        className={`fixed bottom-5 left-5 right-5 z-[70] transition-all duration-500 sm:left-auto sm:w-[420px] ${
+        className={`fixed left-5 right-5 top-24 z-[70] transition-all duration-500 sm:left-auto sm:w-[420px] ${
           message
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-8 opacity-0"
