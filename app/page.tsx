@@ -462,7 +462,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-black text-white">
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-[90] border-b border-white/10 bg-black/95 shadow-[0_8px_30px_rgba(0,0,0,0.35)] backdrop-blur-xl">
         <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 md:px-10">
           <button
             type="button"
@@ -1604,53 +1604,56 @@ export default function Home() {
       <div
         role="status"
         aria-live="polite"
-        className={`fixed left-5 right-5 top-24 z-[70] transition-all duration-500 sm:left-auto sm:w-[420px] ${
+        aria-atomic="true"
+        className={`fixed inset-x-0 top-[72px] z-[100] transition-all duration-500 ${
           message
             ? "translate-y-0 opacity-100"
-            : "pointer-events-none translate-y-8 opacity-0"
+            : "pointer-events-none -translate-y-full opacity-0"
         }`}
       >
         <div
-          className={`flex items-start gap-4 rounded-2xl border bg-zinc-950/95 p-5 backdrop-blur-xl ${
+          className={`border-b backdrop-blur-xl ${
             toastKind === "error"
-              ? "border-red-400/50 shadow-[0_0_40px_rgba(248,113,113,0.2)]"
+              ? "border-red-400/50 bg-red-950/95 shadow-[0_12px_40px_rgba(248,113,113,0.2)]"
               : toastKind === "loading"
-                ? "border-cyan-300/40 shadow-[0_0_40px_rgba(34,211,238,0.2)]"
-                : "border-green-400/50 shadow-[0_0_40px_rgba(74,222,128,0.2)]"
+                ? "border-cyan-300/40 bg-cyan-950/95 shadow-[0_12px_40px_rgba(34,211,238,0.2)]"
+                : "border-green-400/50 bg-green-950/95 shadow-[0_12px_40px_rgba(74,222,128,0.2)]"
           }`}
         >
-          <span
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-black text-black ${
-              toastKind === "error"
-                ? "bg-red-400"
-                : toastKind === "loading"
-                  ? "animate-pulse bg-cyan-300"
-                  : "bg-green-400"
-            }`}
-          >
-            {toastKind === "error" ? "!" : toastKind === "loading" ? "…" : "✓"}
-          </span>
-          <div className="flex-1">
-            <p className="font-black text-white">
-              {toastKind === "error"
-                ? "Nie udało się wysłać"
-                : toastKind === "loading"
-                  ? "Wysyłanie rezerwacji"
-                  : "Rezerwacja wysłana"}
-            </p>
-            <p className="mt-1 text-sm leading-6 text-zinc-300">{message}</p>
+          <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-4 md:px-10">
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-black text-black ${
+                toastKind === "error"
+                  ? "bg-red-400"
+                  : toastKind === "loading"
+                    ? "animate-pulse bg-cyan-300"
+                    : "bg-green-400"
+              }`}
+            >
+              {toastKind === "error" ? "!" : toastKind === "loading" ? "…" : "✓"}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-black text-white">
+                {toastKind === "error"
+                  ? "Sprawdź formularz"
+                  : toastKind === "loading"
+                    ? "Wysyłanie rezerwacji"
+                    : "Rezerwacja została przyjęta"}
+              </p>
+              <p className="mt-0.5 text-sm leading-5 text-zinc-200">{message}</p>
+            </div>
+            <button
+              type="button"
+              aria-label="Zamknij powiadomienie"
+              onClick={() => {
+                setMessage("");
+                setToastKind("");
+              }}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-2xl text-zinc-300 transition hover:bg-white/10 hover:text-white"
+            >
+              ×
+            </button>
           </div>
-          <button
-            type="button"
-            aria-label="Zamknij powiadomienie"
-            onClick={() => {
-              setMessage("");
-              setToastKind("");
-            }}
-            className="text-xl text-zinc-500 transition hover:text-white"
-          >
-            ×
-          </button>
         </div>
       </div>
 
