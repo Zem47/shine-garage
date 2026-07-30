@@ -96,20 +96,23 @@ export async function POST(request: Request) {
     ["Uwagi", reservation.notes || "Brak"],
   ];
 
-  const emailResponse = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "User-Agent": "shine-garage/1.0",
-      "Idempotency-Key": crypto.randomUUID(),
-    },
-    body: JSON.stringify({
-      from,
-      to: [recipient],
-      subject: `Nowa rezerwacja Shine Garage — ${reservation.car}`,
-      text: rows.map(([label, value]) => `${label}: ${value}`).join("\n"),
-      html: `
+  let emailResponse: Response;
+
+  try {
+    emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": "shine-garage/1.0",
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({
+        from,
+        to: [recipient],
+        subject: `Nowa rezerwacja Shine Garage — ${reservation.car}`,
+        text: rows.map(([label, value]) => `${label}: ${value}`).join("\n"),
+        html: `
         <div style="font-family:Arial,sans-serif;max-width:640px;margin:auto;color:#18181b">
           <h1 style="margin-bottom:8px">Nowa rezerwacja Shine Garage</h1>
           <p style="margin-top:0;color:#52525b">Formularz wysłany ze strony internetowej.</p>
@@ -126,12 +129,34 @@ export async function POST(request: Request) {
           </table>
         </div>
       `,
-    }),
-  });
+      }),
+    });
+  } catch (error) {
+    console.error("Resend connection error", error);
+    return NextResponse.json(
+      { error: "Nie udało się połączyć z usługą e-mail." },
+      { status: 502 },
+    );
+  }
 
   if (!emailResponse.ok) {
+    const resendError = await emailResponse.text();
+    console.error("Resend rejected email", emailResponse.status, resendError);
+
+    let publicError = "Usługa e-mail odrzuciła wiadomość.";
+
+    if (emailResponse.status === 401 || emailResponse.status === 403) {
+      publicError =
+        "Klucz Resend jest nieprawidłowy albo nie ma uprawnień do wysyłania.";
+    } else if (emailResponse.status === 422) {
+      publicError =
+        "Adres nadawcy lub odbiorcy nie jest jeszcze dozwolony w Resend.";
+    } else if (emailResponse.status === 429) {
+      publicError = "Przekroczono chwilowy limit wysyłania wiadomości.";
+    }
+
     return NextResponse.json(
-      { error: "Usługa e-mail odrzuciła wiadomość." },
+      { error: publicError },
       { status: 502 },
     );
   }

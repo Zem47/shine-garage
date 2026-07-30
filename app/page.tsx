@@ -136,6 +136,9 @@ const timeSlots = Array.from({ length: 24 }, (_, index) => {
 export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [toastKind, setToastKind] = useState<
+    "success" | "error" | "loading" | ""
+  >("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState("");
   const [reservationHighlight, setReservationHighlight] = useState(false);
@@ -147,6 +150,8 @@ export default function Home() {
   const [beforeAfterPosition, setBeforeAfterPosition] = useState(52);
   const [selectedComparison, setSelectedComparison] = useState(0);
   const [revealedSocial, setRevealedSocial] = useState<string | null>(null);
+  const [selectedCalculatorPackage, setSelectedCalculatorPackage] =
+    useState("start");
   const [selectedCarSize, setSelectedCarSize] = useState("medium");
   const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -284,13 +289,18 @@ export default function Home() {
           )
           ?.focus({ preventScroll: true });
       }, 80);
+      setToastKind("error");
       setMessage("Uzupełnij zaznaczone pola formularza.");
-      window.setTimeout(() => setMessage(""), 5000);
+      window.setTimeout(() => {
+        setMessage("");
+        setToastKind("");
+      }, 7000);
       return;
     }
 
     setFormErrors({});
     setIsSubmitting(true);
+    setToastKind("loading");
     setMessage("Wysyłamy rezerwację…");
 
     try {
@@ -310,31 +320,49 @@ export default function Home() {
         }),
       });
 
+      const result = (await response.json().catch(() => null)) as
+        | { error?: string; ok?: boolean }
+        | null;
+
       if (!response.ok) {
-        throw new Error("Nie udało się wysłać rezerwacji.");
+        throw new Error(
+          result?.error || "Nie udało się wysłać rezerwacji.",
+        );
       }
 
       form.reset();
       setSelectedPackage("");
       setSelectedDate("");
       setSelectedTime("");
+      setToastKind("success");
       setMessage(
         "Dziękujemy! Rezerwacja została wysłana. Odezwiemy się telefonicznie.",
       );
-    } catch {
+    } catch (error) {
+      setToastKind("error");
       setMessage(
-        "Nie udało się wysłać rezerwacji. Spróbuj ponownie lub zadzwoń.",
+        error instanceof Error
+          ? error.message
+          : "Nie udało się wysłać rezerwacji. Spróbuj ponownie lub zadzwoń.",
       );
     } finally {
       setIsSubmitting(false);
-      window.setTimeout(() => setMessage(""), 6000);
+      window.setTimeout(() => {
+        setMessage("");
+        setToastKind("");
+      }, 9000);
     }
   }
 
+  const calculatorPackagePrices: Record<string, number> = {
+    start: 349,
+    pro: 899,
+    ceramic: 1799,
+  };
   const sizePrices: Record<string, number> = {
-    small: 299,
-    medium: 399,
-    large: 549,
+    small: 0,
+    medium: 100,
+    large: 250,
   };
   const extraPrices: Record<string, number> = {
     ceramic: 900,
@@ -342,6 +370,7 @@ export default function Home() {
     wheels: 160,
   };
   const estimatedPrice =
+    calculatorPackagePrices[selectedCalculatorPackage] +
     sizePrices[selectedCarSize] +
     selectedExtras.reduce((sum, item) => sum + extraPrices[item], 0);
 
@@ -737,12 +766,47 @@ export default function Home() {
 
           <div className="mt-12 grid gap-8 rounded-3xl border border-white/10 bg-zinc-900 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-10">
             <div>
+              <p className="font-black">Pakiet</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {[
+                  ["start", "Start", "349 zł"],
+                  ["pro", "Pro", "899 zł"],
+                  ["ceramic", "Ceramic", "1799 zł"],
+                ].map(([value, label, price]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={selectedCalculatorPackage === value}
+                    onClick={() => setSelectedCalculatorPackage(value)}
+                    className={`relative rounded-2xl border p-4 text-left transition-all duration-500 ease-out ${
+                      selectedCalculatorPackage === value
+                        ? "scale-[1.025] border-cyan-300 bg-cyan-300/10 shadow-[0_0_28px_rgba(34,211,238,0.18)]"
+                        : "scale-100 border-white/10 bg-black/20 hover:-translate-y-1 hover:border-white/30"
+                    }`}
+                  >
+                    <span className="block font-black">{label}</span>
+                    <span className="mt-1 block text-sm text-zinc-400">
+                      {price}
+                    </span>
+                    <span
+                      className={`absolute right-4 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
+                        selectedCalculatorPackage === value
+                          ? "scale-110 rotate-0 border-cyan-300 bg-cyan-300 text-black opacity-100"
+                          : "scale-75 -rotate-90 border-zinc-600 opacity-50"
+                      }`}
+                    >
+                      {selectedCalculatorPackage === value ? "✓" : ""}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
               <p className="font-black">Wielkość samochodu</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {[
-                  ["small", "Małe", "299 zł"],
-                  ["medium", "Średnie", "399 zł"],
-                  ["large", "SUV / duże", "549 zł"],
+                  ["small", "Małe", "+0 zł"],
+                  ["medium", "Średnie", "+100 zł"],
+                  ["large", "SUV / duże", "+250 zł"],
                 ].map(([value, label, price]) => (
                   <button
                     key={value}
@@ -756,7 +820,7 @@ export default function Home() {
                   >
                     <span className="block font-black">{label}</span>
                     <span className="mt-1 block text-sm text-zinc-400">
-                      od {price}
+                      {price}
                     </span>
                     <span
                       className={`absolute right-4 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full border text-xs transition-all duration-500 ${
@@ -827,7 +891,11 @@ export default function Home() {
               </p>
               <button
                 type="button"
-                onClick={() => navigateTo("rezerwacja")}
+                onClick={() => {
+                  setSelectedPackage(selectedCalculatorPackage);
+                  clearFieldError("package");
+                  navigateTo("rezerwacja");
+                }}
                 className="mt-7 rounded-full bg-cyan-400 px-6 py-4 font-black text-black transition hover:bg-cyan-300"
               >
                 Zarezerwuj wycenę
@@ -1301,28 +1369,43 @@ export default function Home() {
             : "pointer-events-none translate-y-8 opacity-0"
         }`}
       >
-        <div className="flex items-start gap-4 rounded-2xl border border-cyan-300/40 bg-zinc-950/95 p-5 shadow-[0_0_40px_rgba(34,211,238,0.2)] backdrop-blur-xl">
+        <div
+          className={`flex items-start gap-4 rounded-2xl border bg-zinc-950/95 p-5 backdrop-blur-xl ${
+            toastKind === "error"
+              ? "border-red-400/50 shadow-[0_0_40px_rgba(248,113,113,0.2)]"
+              : toastKind === "loading"
+                ? "border-cyan-300/40 shadow-[0_0_40px_rgba(34,211,238,0.2)]"
+                : "border-green-400/50 shadow-[0_0_40px_rgba(74,222,128,0.2)]"
+          }`}
+        >
           <span
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-black text-black ${
-              message.startsWith("Uzupełnij")
-                ? "bg-amber-300"
-                : "bg-green-400"
+              toastKind === "error"
+                ? "bg-red-400"
+                : toastKind === "loading"
+                  ? "animate-pulse bg-cyan-300"
+                  : "bg-green-400"
             }`}
           >
-            {message.startsWith("Uzupełnij") ? "!" : "✓"}
+            {toastKind === "error" ? "!" : toastKind === "loading" ? "…" : "✓"}
           </span>
           <div className="flex-1">
             <p className="font-black text-white">
-              {message.startsWith("Uzupełnij")
-                ? "Brakuje wymaganych danych"
-                : "Rezerwacja wysłana"}
+              {toastKind === "error"
+                ? "Nie udało się wysłać"
+                : toastKind === "loading"
+                  ? "Wysyłanie rezerwacji"
+                  : "Rezerwacja wysłana"}
             </p>
             <p className="mt-1 text-sm leading-6 text-zinc-300">{message}</p>
           </div>
           <button
             type="button"
             aria-label="Zamknij powiadomienie"
-            onClick={() => setMessage("")}
+            onClick={() => {
+              setMessage("");
+              setToastKind("");
+            }}
             className="text-xl text-zinc-500 transition hover:text-white"
           >
             ×
