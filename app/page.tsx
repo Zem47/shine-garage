@@ -472,10 +472,10 @@ export default function Home() {
           <button
             type="button"
             onClick={() => navigateTo("start")}
-            className="text-xl font-black tracking-[0.12em]"
+            className="text-xl font-black tracking-[0.12em] text-white drop-shadow-[0_1px_4px_rgba(255,255,255,0.2)]"
           >
             SHINE{" "}
-            <span className="text-cyan-300 drop-shadow-[0_0_10px_rgba(103,232,249,0.7)]">
+            <span className="text-cyan-200 drop-shadow-[0_0_12px_rgba(103,232,249,0.9)]">
               GARAGE
             </span>
           </button>
@@ -513,20 +513,20 @@ export default function Home() {
             aria-label={isMenuOpen ? "Zamknij menu" : "Otwórz menu"}
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex w-10 flex-col gap-1.5 rounded-lg p-2 lg:hidden"
+            className="flex w-11 flex-col items-center gap-1.5 rounded-xl border border-white/20 bg-white/5 p-2.5 shadow-[0_0_20px_rgba(255,255,255,0.08)] transition hover:border-white/40 hover:bg-white/10 lg:hidden"
           >
             <span
-              className={`h-0.5 w-6 bg-white transition duration-500 ease-linear ${
+              className={`h-0.5 w-6 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)] transition duration-500 ease-linear ${
                 isMenuOpen ? "translate-y-2 rotate-45" : ""
               }`}
             />
             <span
-              className={`h-0.5 w-6 bg-white transition duration-500 ease-linear ${
+              className={`h-0.5 w-6 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)] transition duration-500 ease-linear ${
                 isMenuOpen ? "opacity-0" : ""
               }`}
             />
             <span
-              className={`h-0.5 w-6 bg-white transition duration-500 ease-linear ${
+              className={`h-0.5 w-6 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.8)] transition duration-500 ease-linear ${
                 isMenuOpen ? "-translate-y-2 -rotate-45" : ""
               }`}
             />
@@ -534,13 +534,13 @@ export default function Home() {
         </div>
 
         <div
-          className={`overflow-hidden border-white/10 bg-black/95 transition-all duration-500 ease-linear lg:hidden ${
+          className={`overflow-hidden border-white/20 bg-black/98 text-white shadow-[0_18px_40px_rgba(0,0,0,0.65)] transition-all duration-500 ease-linear lg:hidden ${
             isMenuOpen
               ? "max-h-96 border-t py-3 opacity-100"
               : "max-h-0 opacity-0"
           }`}
         >
-          <nav className="flex flex-col px-5 text-left font-bold">
+          <nav className="flex flex-col px-5 text-left font-bold text-white">
             {[
               ["Oferta", "oferta"],
               ["Realizacje", "realizacje"],
@@ -555,7 +555,11 @@ export default function Home() {
                 key={id}
                 type="button"
                 onClick={() => mobileNavigate(id)}
-                className="rounded-lg px-3 py-3 text-left hover:bg-white/10"
+                className={`rounded-lg border-b border-white/10 px-3 py-3.5 text-left text-base text-white transition hover:bg-white/10 hover:text-cyan-200 ${
+                  id === "rezerwacja"
+                    ? "mt-2 border-b-0 bg-cyan-300 text-center font-black text-black hover:bg-cyan-200 hover:text-black"
+                    : ""
+                }`}
               >
                 {label}
               </button>
