@@ -689,7 +689,7 @@ export default function Home() {
             description="Porównaj lakier przed korektą i po pełnym procesie detailingu."
           />
 
-          <div className="relative mx-auto mt-14 aspect-[16/9] max-w-5xl overflow-hidden rounded-3xl border border-white/15 bg-zinc-900 shadow-[0_0_60px_rgba(34,211,238,0.1)]">
+          <div className="relative mx-auto mt-10 aspect-[4/3] max-w-sm overflow-hidden rounded-2xl border border-white/15 bg-zinc-900 shadow-[0_0_40px_rgba(34,211,238,0.1)] sm:mt-14 sm:aspect-[16/9] sm:max-w-5xl sm:rounded-3xl sm:shadow-[0_0_60px_rgba(34,211,238,0.1)]">
             <div
               key={`${selectedComparison}-after`}
               className="absolute inset-0 animate-[fadeIn_450ms_ease-out] bg-cover bg-center"
@@ -709,14 +709,14 @@ export default function Home() {
               className="pointer-events-none absolute inset-y-0 w-1 -translate-x-1/2 bg-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.9)]"
               style={{ left: `${beforeAfterPosition}%` }}
             >
-              <span className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-cyan-300 font-black text-black">
+              <span className="absolute left-1/2 top-1/2 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-cyan-300 text-sm font-black text-black sm:h-12 sm:w-12 sm:text-base">
                 ↔
               </span>
             </div>
-            <span className="absolute left-5 top-5 rounded-full bg-black/75 px-4 py-2 text-sm font-black">
+            <span className="absolute left-3 top-3 rounded-full bg-black/75 px-3 py-1.5 text-xs font-black sm:left-5 sm:top-5 sm:px-4 sm:py-2 sm:text-sm">
               PRZED
             </span>
-            <span className="absolute right-5 top-5 rounded-full bg-cyan-300 px-4 py-2 text-sm font-black text-black">
+            <span className="absolute right-3 top-3 rounded-full bg-cyan-300 px-3 py-1.5 text-xs font-black text-black sm:right-5 sm:top-5 sm:px-4 sm:py-2 sm:text-sm">
               PO
             </span>
             <input
@@ -749,13 +749,13 @@ export default function Home() {
                 }`}
               >
                 <div
-                  className="h-52 bg-cover transition duration-500 group-hover:scale-105"
+                  className="h-36 bg-cover transition duration-500 group-hover:scale-105 sm:h-52"
                   style={{
                     backgroundImage: `url('${project.after}')`,
                     backgroundPosition: "center",
                   }}
                 />
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   <p className="text-xs font-black uppercase tracking-widest text-cyan-300">
                     {project.title}
                   </p>
