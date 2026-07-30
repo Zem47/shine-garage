@@ -140,7 +140,7 @@ export default function Home() {
     "success" | "error" | "loading" | ""
   >("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState("");
+  const [selectedPackage, setSelectedPackage] = useState("start");
   const [reservationHighlight, setReservationHighlight] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -351,7 +351,7 @@ export default function Home() {
       }
 
       form.reset();
-      setSelectedPackage("");
+      setSelectedPackage("start");
       setSelectedCarSize("medium");
       setSelectedExtras([]);
       setSelectedDate("");
